@@ -49,3 +49,13 @@ func (s *ForestService) CreateTree(ctx context.Context, req *forest.CreateTreeRe
 	}
 	return treeModel.ToProto(), nil
 }
+
+func (s *ForestService) GetForest(ctx context.Context, req *forest.GetForestRequest) (*forest.GetForestResponse, error) {
+	forestModel, err := s.Store.Neo4j.GetForest(ctx, req.GetForestId())
+	if err != nil {
+		return nil, err
+	}
+	return &forest.GetForestResponse{
+		Forest: forestModel.ToProto(),
+	}, nil
+}

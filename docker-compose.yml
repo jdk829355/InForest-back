@@ -1,9 +1,7 @@
 version: '3.9'
 services:
   app:
-    build:
-      context: .
-      dockerfile: dockerfile
+    image: jungdae/inforest_app
     ports:
       - "50051:50051"
     networks:
@@ -25,6 +23,8 @@ services:
       - "7687:7687"
     volumes:
       - db_data:/data
+    
+
 volumes:
   db_data: {}
 networks:

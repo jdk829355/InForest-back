@@ -174,6 +174,8 @@ func (s *Neo4jStore) CreateForest(ctx context.Context, forest *models.Forest, ro
 	forest.Id = uuid.New().String()
 	forest.Depth = 1
 	forest.TotalTrees = 1
+	root.Id = uuid.New().String()
+	root.Children = nil
 
 	cypher := `CREATE (f:Forest {id: $id, name: $name, description: $description, depth: $depth, total_trees: $total_trees, user_id: $user_id})
 	-[:derived]-> (t:Tree {id: $tree_id, name: $tree_name, url: $tree_url})`
@@ -184,7 +186,7 @@ func (s *Neo4jStore) CreateForest(ctx context.Context, forest *models.Forest, ro
 		"depth":       forest.Depth,
 		"total_trees": forest.TotalTrees,
 		"user_id":     forest.UserId,
-		"tree_id":     uuid.New().String(),
+		"tree_id":     root.Id,
 		"tree_name":   root.Name,
 		"tree_url":    root.Url,
 	}
@@ -231,4 +233,69 @@ func (s *Neo4jStore) CreateTree(ctx context.Context, tree *models.Tree, parentID
 		return err
 	}
 	return nil
+}
+
+func (s *Neo4jStore) GetForest(ctx context.Context, forestID string) (*models.Forest, error) {
+	session := s.neo4jDriver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+	defer session.Close(ctx)
+
+	cypher := `MATCH (f:Forest {id: $forest_id}) RETURN f.user_id AS user_id, f.id AS id, f.name AS name, f.description AS description, f.depth AS depth, f.total_trees AS total_trees`
+	parameters := map[string]interface{}{
+		"forest_id": forestID,
+	}
+	result, err := session.Run(ctx, cypher, parameters)
+	if err != nil {
+		return nil, fmt.Errorf("failed to run query: %w", err)
+	}
+	if result.Next(ctx) {
+		record := result.Record()
+		forest, err := s.parseForestRecord(record)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse forest record: %w", err)
+		}
+		// 루트 트리의 하위 트리들 재귀적으로 가져오기
+		cypher = `MATCH (f: Forest{id: $forestId})-[:derived]->(t: Tree) RETURN t.id AS id, t.name AS name, t.url AS url`
+		parameters = map[string]interface{}{
+			"forestId": forest.Id,
+		}
+		treeResult, err := session.Run(ctx, cypher, parameters)
+		if err != nil {
+			return nil, fmt.Errorf("failed to run tree query: %w", err)
+		}
+		var rootTree *models.Tree
+		if treeResult.Next(ctx) {
+			if record := treeResult.Record(); record != nil {
+				rootTree, err = s.parseTreeRecord(record)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse tree record: %w", err)
+				}
+				forest.Root = rootTree
+			}
+		}
+
+		getDerived(rootTree, ctx, session, s)
+
+		return forest, nil
+	}
+	return nil, fmt.Errorf("forest not found")
+}
+func getDerived(tree_from *models.Tree, ctx context.Context, session neo4j.SessionWithContext, s *Neo4jStore) *models.Tree {
+	cypher := `MATCH (parent:Tree {id: $parent_id})-[:derived]->(child:Tree) RETURN child.id AS id, child.name AS name, child.url AS url`
+	parameters := map[string]interface{}{
+		"parent_id": tree_from.Id,
+	}
+	derivedResult, err := session.Run(ctx, cypher, parameters)
+	if err != nil {
+		return nil
+	}
+	for derivedResult.Next(ctx) {
+		record := derivedResult.Record()
+		child, err := s.parseTreeRecord(record)
+		if err != nil {
+			return nil
+		}
+		tree_from.Children = append(tree_from.Children, child)
+		getDerived(child, ctx, session, s)
+	}
+	return tree_from
 }
