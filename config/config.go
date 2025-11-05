@@ -2,6 +2,8 @@ package config
 
 import (
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -12,13 +14,7 @@ type Config struct {
 }
 
 func LoadConfig() (*Config, error) {
-	//.env 파일 로드 (개발 환경에서만 필요)
-	// if os.Getenv("NEO4J_URI") == "" {
-	// 	err := godotenv.Load("../../config/.env")
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// }
+	godotenv.Load("./config/.env_local")
 
 	return &Config{
 		Neo4jURI:      os.Getenv("NEO4J_URI"),

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v6.32.1
-// source: forest.proto
+// source: protos/forest/forest.proto
 
 package forest
 
@@ -23,16 +23,38 @@ const (
 	ForestService_CreateForest_FullMethodName     = "/ForestService/CreateForest"
 	ForestService_CreateTree_FullMethodName       = "/ForestService/CreateTree"
 	ForestService_GetForest_FullMethodName        = "/ForestService/GetForest"
+	ForestService_UpdateForest_FullMethodName     = "/ForestService/UpdateForest"
+	ForestService_DeleteForest_FullMethodName     = "/ForestService/DeleteForest"
+	ForestService_UpdateTree_FullMethodName       = "/ForestService/UpdateTree"
+	ForestService_DeleteTree_FullMethodName       = "/ForestService/DeleteTree"
+	ForestService_GetTree_FullMethodName          = "/ForestService/GetTree"
 )
 
 // ForestServiceClient is the client API for ForestService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// TODO 아래에 있는 RPC 추가
+// - GetForestsByUser: 특정 사용자의 모든 숲을 가져오는 RPC (인증 기능 완료)
+// - CreateForest: 새로운 숲을 생성하는 RPC (인증 기능 완료)
+// - CreateTree: 숲에 새로운 나무를 추가하는 RPC (user_id 안 쓰니 인증 기능 필요 없음)
+// - GetForest: 특정 숲의 세부 정보를 가져오는 RPC (user_id 안 쓰니 인증 기능 필요 없음)
+// - UpdateForest: 특정 숲의 정보를 업데이트하는 RPC (구현 완료)
+// - DeleteForest: 특정 숲을 삭제하는 RPC (구현 완료)
+// - UpdateTree: 특정 나무의 정보를 업데이트하는 RPC (구현 완료)
+// - GetTree: 특정 나무의 세부 정보를 가져오는 RPC (구현 완료)
+// - DeleteTree: 특정 나무를 삭제하는 RPC
+// - UpdateMemo: Tree의 메모 수정하는 RPC
 type ForestServiceClient interface {
 	GetForestsByUser(ctx context.Context, in *GetForestsByUserRequest, opts ...grpc.CallOption) (*GetForestsByUserResponse, error)
 	CreateForest(ctx context.Context, in *CreateForestRequest, opts ...grpc.CallOption) (*Forest, error)
 	CreateTree(ctx context.Context, in *CreateTreeRequest, opts ...grpc.CallOption) (*Tree, error)
 	GetForest(ctx context.Context, in *GetForestRequest, opts ...grpc.CallOption) (*GetForestResponse, error)
+	UpdateForest(ctx context.Context, in *UpdateForestRequest, opts ...grpc.CallOption) (*Forest, error)
+	DeleteForest(ctx context.Context, in *DeleteForestRequest, opts ...grpc.CallOption) (*DeleteForestResponse, error)
+	UpdateTree(ctx context.Context, in *UpdateTreeRequest, opts ...grpc.CallOption) (*Tree, error)
+	DeleteTree(ctx context.Context, in *DeleteTreeRequest, opts ...grpc.CallOption) (*DeleteTreeResponse, error)
+	GetTree(ctx context.Context, in *GetTreeRequest, opts ...grpc.CallOption) (*Tree, error)
 }
 
 type forestServiceClient struct {
@@ -83,14 +105,81 @@ func (c *forestServiceClient) GetForest(ctx context.Context, in *GetForestReques
 	return out, nil
 }
 
+func (c *forestServiceClient) UpdateForest(ctx context.Context, in *UpdateForestRequest, opts ...grpc.CallOption) (*Forest, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Forest)
+	err := c.cc.Invoke(ctx, ForestService_UpdateForest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *forestServiceClient) DeleteForest(ctx context.Context, in *DeleteForestRequest, opts ...grpc.CallOption) (*DeleteForestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteForestResponse)
+	err := c.cc.Invoke(ctx, ForestService_DeleteForest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *forestServiceClient) UpdateTree(ctx context.Context, in *UpdateTreeRequest, opts ...grpc.CallOption) (*Tree, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Tree)
+	err := c.cc.Invoke(ctx, ForestService_UpdateTree_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *forestServiceClient) DeleteTree(ctx context.Context, in *DeleteTreeRequest, opts ...grpc.CallOption) (*DeleteTreeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteTreeResponse)
+	err := c.cc.Invoke(ctx, ForestService_DeleteTree_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *forestServiceClient) GetTree(ctx context.Context, in *GetTreeRequest, opts ...grpc.CallOption) (*Tree, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Tree)
+	err := c.cc.Invoke(ctx, ForestService_GetTree_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ForestServiceServer is the server API for ForestService service.
 // All implementations must embed UnimplementedForestServiceServer
 // for forward compatibility.
+//
+// TODO 아래에 있는 RPC 추가
+// - GetForestsByUser: 특정 사용자의 모든 숲을 가져오는 RPC (인증 기능 완료)
+// - CreateForest: 새로운 숲을 생성하는 RPC (인증 기능 완료)
+// - CreateTree: 숲에 새로운 나무를 추가하는 RPC (user_id 안 쓰니 인증 기능 필요 없음)
+// - GetForest: 특정 숲의 세부 정보를 가져오는 RPC (user_id 안 쓰니 인증 기능 필요 없음)
+// - UpdateForest: 특정 숲의 정보를 업데이트하는 RPC (구현 완료)
+// - DeleteForest: 특정 숲을 삭제하는 RPC (구현 완료)
+// - UpdateTree: 특정 나무의 정보를 업데이트하는 RPC (구현 완료)
+// - GetTree: 특정 나무의 세부 정보를 가져오는 RPC (구현 완료)
+// - DeleteTree: 특정 나무를 삭제하는 RPC
+// - UpdateMemo: Tree의 메모 수정하는 RPC
 type ForestServiceServer interface {
 	GetForestsByUser(context.Context, *GetForestsByUserRequest) (*GetForestsByUserResponse, error)
 	CreateForest(context.Context, *CreateForestRequest) (*Forest, error)
 	CreateTree(context.Context, *CreateTreeRequest) (*Tree, error)
 	GetForest(context.Context, *GetForestRequest) (*GetForestResponse, error)
+	UpdateForest(context.Context, *UpdateForestRequest) (*Forest, error)
+	DeleteForest(context.Context, *DeleteForestRequest) (*DeleteForestResponse, error)
+	UpdateTree(context.Context, *UpdateTreeRequest) (*Tree, error)
+	DeleteTree(context.Context, *DeleteTreeRequest) (*DeleteTreeResponse, error)
+	GetTree(context.Context, *GetTreeRequest) (*Tree, error)
 	mustEmbedUnimplementedForestServiceServer()
 }
 
@@ -112,6 +201,21 @@ func (UnimplementedForestServiceServer) CreateTree(context.Context, *CreateTreeR
 }
 func (UnimplementedForestServiceServer) GetForest(context.Context, *GetForestRequest) (*GetForestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetForest not implemented")
+}
+func (UnimplementedForestServiceServer) UpdateForest(context.Context, *UpdateForestRequest) (*Forest, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateForest not implemented")
+}
+func (UnimplementedForestServiceServer) DeleteForest(context.Context, *DeleteForestRequest) (*DeleteForestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteForest not implemented")
+}
+func (UnimplementedForestServiceServer) UpdateTree(context.Context, *UpdateTreeRequest) (*Tree, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateTree not implemented")
+}
+func (UnimplementedForestServiceServer) DeleteTree(context.Context, *DeleteTreeRequest) (*DeleteTreeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteTree not implemented")
+}
+func (UnimplementedForestServiceServer) GetTree(context.Context, *GetTreeRequest) (*Tree, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTree not implemented")
 }
 func (UnimplementedForestServiceServer) mustEmbedUnimplementedForestServiceServer() {}
 func (UnimplementedForestServiceServer) testEmbeddedByValue()                       {}
@@ -206,6 +310,96 @@ func _ForestService_GetForest_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ForestService_UpdateForest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateForestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ForestServiceServer).UpdateForest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ForestService_UpdateForest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ForestServiceServer).UpdateForest(ctx, req.(*UpdateForestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ForestService_DeleteForest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteForestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ForestServiceServer).DeleteForest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ForestService_DeleteForest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ForestServiceServer).DeleteForest(ctx, req.(*DeleteForestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ForestService_UpdateTree_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateTreeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ForestServiceServer).UpdateTree(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ForestService_UpdateTree_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ForestServiceServer).UpdateTree(ctx, req.(*UpdateTreeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ForestService_DeleteTree_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteTreeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ForestServiceServer).DeleteTree(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ForestService_DeleteTree_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ForestServiceServer).DeleteTree(ctx, req.(*DeleteTreeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ForestService_GetTree_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTreeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ForestServiceServer).GetTree(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ForestService_GetTree_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ForestServiceServer).GetTree(ctx, req.(*GetTreeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ForestService_ServiceDesc is the grpc.ServiceDesc for ForestService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -229,7 +423,27 @@ var ForestService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetForest",
 			Handler:    _ForestService_GetForest_Handler,
 		},
+		{
+			MethodName: "UpdateForest",
+			Handler:    _ForestService_UpdateForest_Handler,
+		},
+		{
+			MethodName: "DeleteForest",
+			Handler:    _ForestService_DeleteForest_Handler,
+		},
+		{
+			MethodName: "UpdateTree",
+			Handler:    _ForestService_UpdateTree_Handler,
+		},
+		{
+			MethodName: "DeleteTree",
+			Handler:    _ForestService_DeleteTree_Handler,
+		},
+		{
+			MethodName: "GetTree",
+			Handler:    _ForestService_GetTree_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "forest.proto",
+	Metadata: "protos/forest/forest.proto",
 }

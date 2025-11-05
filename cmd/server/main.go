@@ -11,6 +11,8 @@ import (
 
 	"github.com/jdk829355/InForest_back/config"
 	app "github.com/jdk829355/InForest_back/internal/grpc/forestservice"
+	"github.com/jdk829355/InForest_back/internal/grpc/interceptors/authinterceptor"
+	"github.com/jdk829355/InForest_back/internal/service/auth"
 	"github.com/jdk829355/InForest_back/internal/store"
 	gen "github.com/jdk829355/InForest_back/protos/forest"
 
@@ -20,6 +22,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
@@ -73,6 +76,18 @@ func main() {
 		}),
 	}
 
+	// 인증 서비스 설정
+	jwtSecret := os.Getenv("JWT_SECRET")
+	authSvc, err := auth.NewAuthService(jwtSecret)
+	if err != nil {
+		logger.Fatal("Failed to load jwt secret", zap.Error(err))
+	}
+
+	tokenInterceptor, err := authinterceptor.NewAuthInterceptor(authSvc)
+	if err != nil {
+		logger.Fatal("Failed to init auth interceptor", zap.Error(err))
+	}
+
 	// gRPC 서버 옵션에 인터셉터 추가
 	serverOptions := []grpc.ServerOption{
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
@@ -80,6 +95,7 @@ func main() {
 			grpc_recovery.UnaryServerInterceptor(),
 			// Zap을 사용해 요청/응답을 로깅
 			grpc_zap.UnaryServerInterceptor(logger, loggingOpts...),
+			tokenInterceptor.UnaryServerInterceptor(),
 		)),
 		// 스트림 사용할 경우에 대비해 추가
 		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
@@ -95,6 +111,7 @@ func main() {
 	// gRPC 서버 시작
 	go func() {
 		logger.Info("Starting gRPC server", zap.String("address", listenAddr))
+		reflection.Register(s)
 		if err := s.Serve(l); err != nil {
 			// Serve가 정상 종료(GracefulStop) 외의 이유로 중단되면 Fatal 로깅
 			logger.Fatal("Failed to serve gRPC", zap.Error(err))

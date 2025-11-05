@@ -25,6 +25,7 @@ func NewNeo4jStore(driver neo4j.DriverWithContext) (*Neo4jStore, error) {
 func InitNeo4jStore(cfg *config.Config) (*neo4j.DriverWithContext, error) {
 	ctx := context.Background()
 	dbUri := cfg.Neo4jURI
+	fmt.Println("connecting to" + dbUri)
 	dbUser := cfg.Neo4jUsername
 	dbPassword := cfg.Neo4jPassword
 	driver, err := neo4j.NewDriverWithContext(
@@ -47,82 +48,9 @@ func (store *Neo4jStore) Close(ctx context.Context) error {
 	return store.neo4jDriver.Close(ctx)
 }
 
-func (s *Neo4jStore) parseForestRecord(record *neo4j.Record) (*models.Forest, error) {
-	forest := &models.Forest{}
-	var ok bool
-
-	if forestData, exists := record.Get("id"); exists {
-		forest.Id, ok = forestData.(string)
-		if !ok {
-			return nil, fmt.Errorf("invalid type for forest id")
-		}
-	}
-	if forestData, exists := record.Get("name"); exists {
-		forest.Name, ok = forestData.(string)
-		if !ok {
-			return nil, fmt.Errorf("invalid type for forest name")
-		}
-	}
-	if forestData, exists := record.Get("description"); exists {
-		forest.Description, ok = forestData.(string)
-		if !ok {
-			return nil, fmt.Errorf("invalid type for forest description")
-		}
-	}
-	if forestData, exists := record.Get("depth"); exists {
-		depth, ok := forestData.(int64)
-		if !ok {
-			return nil, fmt.Errorf("invalid type for forest depth")
-		}
-		forest.Depth = int32(depth)
-	}
-	if forestData, exists := record.Get("total_trees"); exists {
-		totalTrees, ok := forestData.(int64)
-		if !ok {
-			return nil, fmt.Errorf("invalid type for forest total_trees")
-		}
-		forest.TotalTrees = int32(totalTrees)
-	}
-	if forestData, exists := record.Get("user_id"); exists {
-		forest.UserId, ok = forestData.(string)
-		if !ok {
-			return nil, fmt.Errorf("invalid type for forest user_id")
-		}
-	}
-	forest.Root = nil // 트리 구조는 별도로 처리 필요
-
-	return forest, nil
-}
-
-func (s *Neo4jStore) parseTreeRecord(record *neo4j.Record) (*models.Tree, error) {
-	tree := &models.Tree{}
-	var ok bool
-
-	if treeData, exists := record.Get("id"); exists {
-		tree.Id, ok = treeData.(string)
-		if !ok {
-			return nil, fmt.Errorf("invalid type for tree id")
-		}
-	}
-	if treeData, exists := record.Get("name"); exists {
-		tree.Name, ok = treeData.(string)
-		if !ok {
-			return nil, fmt.Errorf("invalid type for tree name")
-		}
-	}
-	if treeData, exists := record.Get("url"); exists {
-		tree.Url, ok = treeData.(string)
-		if !ok {
-			return nil, fmt.Errorf("invalid type for tree url")
-		}
-	}
-	tree.Children = nil // 자식 트리는 별도로 처리 필요
-	return tree, nil
-}
-
 // 로직 시작
 
-func (s *Neo4jStore) GetForestByUser(ctx context.Context, userID string) ([]*models.Forest, error) {
+func (s *Neo4jStore) GetForestByUser(ctx context.Context, userID string, includeChildren bool) ([]*models.Forest, error) {
 	session := s.neo4jDriver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
 	defer session.Close(ctx)
 	cypher := `MATCH (f:Forest {user_id: $user_id}) RETURN f.user_id AS user_id, f.id AS id, f.name AS name, f.description AS description, f.depth AS depth, f.total_trees AS total_trees`
@@ -160,6 +88,14 @@ func (s *Neo4jStore) GetForestByUser(ctx context.Context, userID string) ([]*mod
 					return nil, fmt.Errorf("failed to parse tree record: %w", err)
 				}
 				forests[i].Root = rootTree
+			}
+		}
+	}
+	if includeChildren {
+		for _, forest := range forests {
+			err = getDerived(forest.Root, ctx, session, s)
+			if err != nil {
+				return nil, err
 			}
 		}
 	}
@@ -235,7 +171,7 @@ func (s *Neo4jStore) CreateTree(ctx context.Context, tree *models.Tree, parentID
 	return nil
 }
 
-func (s *Neo4jStore) GetForest(ctx context.Context, forestID string) (*models.Forest, error) {
+func (s *Neo4jStore) GetForest(ctx context.Context, forestID string, include_children bool) (*models.Forest, error) {
 	session := s.neo4jDriver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
 	defer session.Close(ctx)
 
@@ -262,7 +198,9 @@ func (s *Neo4jStore) GetForest(ctx context.Context, forestID string) (*models.Fo
 		if err != nil {
 			return nil, fmt.Errorf("failed to run tree query: %w", err)
 		}
+
 		var rootTree *models.Tree
+
 		if treeResult.Next(ctx) {
 			if record := treeResult.Record(); record != nil {
 				rootTree, err = s.parseTreeRecord(record)
@@ -273,29 +211,155 @@ func (s *Neo4jStore) GetForest(ctx context.Context, forestID string) (*models.Fo
 			}
 		}
 
-		getDerived(rootTree, ctx, session, s)
+		if include_children {
+			err = getDerived(rootTree, ctx, session, s)
+			if err != nil {
+				return nil, err
+			}
+		}
 
 		return forest, nil
 	}
 	return nil, fmt.Errorf("forest not found")
 }
-func getDerived(tree_from *models.Tree, ctx context.Context, session neo4j.SessionWithContext, s *Neo4jStore) *models.Tree {
-	cypher := `MATCH (parent:Tree {id: $parent_id})-[:derived]->(child:Tree) RETURN child.id AS id, child.name AS name, child.url AS url`
-	parameters := map[string]interface{}{
-		"parent_id": tree_from.Id,
+
+func (s *Neo4jStore) UpdateForest(ctx context.Context, forest *models.Forest) (models.Forest, error) {
+	session := s.neo4jDriver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+	defer session.Close(ctx)
+
+	if forest.Name+forest.Id == "" {
+		return models.Forest{}, fmt.Errorf("invalid forest data")
 	}
-	derivedResult, err := session.Run(ctx, cypher, parameters)
+
+	cypher := `MATCH (f:Forest {id: $id})`
+	parameters := map[string]interface{}{}
+	if forest.Name != "" {
+		cypher += ` SET f.name = $name`
+		parameters["name"] = forest.Name
+	}
+	if forest.Description != "" {
+		cypher += ` SET f.description = $description`
+		parameters["description"] = forest.Description
+	}
+	parameters["id"] = forest.Id
+	_, err := session.Run(ctx, cypher, parameters)
 	if err != nil {
-		return nil
+		return models.Forest{}, err
 	}
-	for derivedResult.Next(ctx) {
-		record := derivedResult.Record()
-		child, err := s.parseTreeRecord(record)
+	updatedForest, err := s.GetForest(ctx, forest.Id, false)
+	if err == nil {
+		return *updatedForest, nil
+	}
+
+	return models.Forest{}, fmt.Errorf("forest not found")
+}
+
+func (s *Neo4jStore) DeleteForest(ctx context.Context, forestID string) error {
+	session := s.neo4jDriver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+	defer session.Close(ctx)
+
+	cypher := `MATCH (n:Forest {id: $forest_id}) OPTIONAL MATCH (n)-[*]->(d:Tree) DETACH DELETE n, d`
+	parameters := map[string]interface{}{
+		"forest_id": forestID,
+	}
+	_, err := session.Run(ctx, cypher, parameters)
+	return err
+}
+
+func (s *Neo4jStore) UpdateTree(ctx context.Context, tree *models.Tree) (models.Tree, error) {
+	session := s.neo4jDriver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+	defer session.Close(ctx)
+
+	if tree.Name+tree.Id == "" {
+		return models.Tree{}, fmt.Errorf("invalid tree data")
+	}
+
+	cypher := `MATCH (t:Tree {id: $id})`
+	parameters := map[string]interface{}{}
+	if tree.Name != "" {
+		cypher += ` SET t.name = $name`
+		parameters["name"] = tree.Name
+	}
+	if tree.Url != "" {
+		cypher += ` SET t.url = $url`
+		parameters["url"] = tree.Url
+	}
+	parameters["id"] = tree.Id
+	_, err := session.Run(ctx, cypher, parameters)
+	if err != nil {
+		return models.Tree{}, err
+	}
+	updatedTree, err := s.GetTreeByID(ctx, tree.Id, false)
+	if err == nil {
+		return *updatedTree, nil
+	}
+
+	return models.Tree{}, fmt.Errorf("tree not found")
+}
+
+func (s *Neo4jStore) GetTreeByID(ctx context.Context, treeID string, includeChildren bool) (*models.Tree, error) {
+	session := s.neo4jDriver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+	defer session.Close(ctx)
+
+	cypher := `MATCH (t:Tree {id: $tree_id}) RETURN t.id AS id, t.name AS name, t.url AS url`
+	parameters := map[string]interface{}{
+		"tree_id": treeID,
+	}
+	result, err := session.Run(ctx, cypher, parameters)
+	if err != nil {
+		return nil, fmt.Errorf("failed to run query: %w", err)
+	}
+	if result.Next(ctx) {
+		record := result.Record()
+		tree, err := s.parseTreeRecord(record)
 		if err != nil {
-			return nil
+			return nil, fmt.Errorf("failed to parse tree record: %w", err)
 		}
-		tree_from.Children = append(tree_from.Children, child)
-		getDerived(child, ctx, session, s)
+		if includeChildren {
+			err = getDerived(tree, ctx, session, s)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return tree, nil
 	}
-	return tree_from
+	return nil, fmt.Errorf("tree not found")
+}
+
+func (s *Neo4jStore) DeleteTree(ctx context.Context, treeID string, cascade bool) error {
+	session := s.neo4jDriver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+	defer session.Close(ctx)
+	var cypher string
+	if cascade {
+		cypher = `MATCH (t:Tree {id: $tree_id})
+		OPTIONAL MATCH (t)-[*]->(descendants)
+		DETACH DELETE t, descendants
+		return count(t) as deletedCount`
+	} else {
+		cypher = `match (target: Tree{id:$tree_id})<-[r:derived]-(parent:Tree)
+		match (target)-[rd:derived]->(child:Tree)
+		create (parent)-[nd:derived]->(child)
+		detach delete (target)
+		return count(target) as deletedCount
+		`
+	}
+	parameters := map[string]interface{}{
+		"tree_id": treeID,
+	}
+
+	resp, err := session.Run(ctx, cypher, parameters)
+	if err != nil {
+		return err
+	}
+
+	if resp.Next(ctx) {
+		deletedCount, ok := resp.Record().Get("deletedCount")
+		if !ok || deletedCount.(int64) == 0 {
+			return fmt.Errorf("tree not found")
+		}
+	} else {
+		return fmt.Errorf("tree not found")
+	}
+
+	return nil
 }
