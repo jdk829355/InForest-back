@@ -1,6 +1,17 @@
 package auth
 
-import "context"
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	"github.com/golang-jwt/jwt/v5"
+)
+
+var (
+	// ErrInvalidToken is returned when the provided token is invalid.
+	ErrInvalidToken = fmt.Errorf("invalid token")
+)
 
 type service struct {
 	secret []byte
@@ -14,5 +25,26 @@ func NewAuthService(secret string) (*service, error) {
 
 func (s *service) ValidateToken(_ context.Context, token string) (string, error) {
 	// TODO 실제 검증 로직 작성하기
-	return "jdk829355", nil
+	// validate token for the correct secret key and signing method.
+	t, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return s.secret, nil
+	})
+	if err != nil {
+		return "", errors.Join(ErrInvalidToken, err)
+	}
+
+	// read claims from payload and extract the user ID.
+	if claims, ok := t.Claims.(jwt.MapClaims); ok && t.Valid {
+		id, ok := claims["sub"].(string)
+		if !ok {
+			return "", fmt.Errorf("%w: failed to extract id from claims", ErrInvalidToken)
+		}
+
+		return id, nil
+	}
+
+	return "", ErrInvalidToken
 }
