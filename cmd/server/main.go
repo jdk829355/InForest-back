@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/jdk829355/InForest_back/config"
-	app "github.com/jdk829355/InForest_back/internal/grpc/forestService"
+	app "github.com/jdk829355/InForest_back/internal/grpc/forestservice"
 	"github.com/jdk829355/InForest_back/internal/grpc/interceptors/authinterceptor"
 	"github.com/jdk829355/InForest_back/internal/service/auth"
 	"github.com/jdk829355/InForest_back/internal/store"

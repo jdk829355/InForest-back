@@ -355,10 +355,13 @@ func (s *Neo4jStore) DeleteTree(ctx context.Context, treeID string, cascade bool
 	var cypher string
 	var inspectCypher string
 	var deletedId []string
+
+	deletedId = append(deletedId, treeID)
+
 	if cascade {
 		inspectCypher = `MATCH (t:Tree {id: $tree_id})
 		OPTIONAL MATCH (t)-[*]->(descendants)
-		RETURN collect(distinct t.id) as deletedId`
+		RETURN descendants.id as deletedId `
 		parameters := map[string]interface{}{
 			"tree_id": treeID,
 		}
@@ -376,8 +379,27 @@ func (s *Neo4jStore) DeleteTree(ctx context.Context, treeID string, cascade bool
 			}
 			deletedId = append(deletedId, id.(string))
 		}
-	} else {
-		deletedId = append(deletedId, treeID)
+	}
+
+	// 숲에서 트리가 속한 숲 ID 조회
+	var forestId string
+	cypher = `MATCH (f: Forest)-[:derived*]->(t) WHERE t.id = $tree_id return f.id as forestId`
+	parameters := map[string]interface{}{
+		"tree_id": treeID,
+	}
+
+	resp, err := session.Run(ctx, cypher, parameters)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.Next(ctx) {
+		record := resp.Record()
+		id, ok := record.Get("forestId")
+		if !ok {
+			return nil, fmt.Errorf("failed to get forest id from record: %v", record)
+		}
+		forestId = id.(string)
 	}
 
 	if cascade {
@@ -393,14 +415,15 @@ func (s *Neo4jStore) DeleteTree(ctx context.Context, treeID string, cascade bool
 		return count(target) as deletedCount
 		`
 	}
-	parameters := map[string]interface{}{
+	parameters = map[string]interface{}{
 		"tree_id": treeID,
 	}
 
-	resp, err := session.Run(ctx, cypher, parameters)
+	resp, err = session.Run(ctx, cypher, parameters)
 	if err != nil {
 		return nil, err
 	}
+
 	if resp.Next(ctx) {
 		deletedCount, ok := resp.Record().Get("deletedCount")
 		if !ok || deletedCount.(int64) == 0 {
@@ -408,6 +431,22 @@ func (s *Neo4jStore) DeleteTree(ctx context.Context, treeID string, cascade bool
 		}
 	} else {
 		return nil, fmt.Errorf("tree not found")
+	}
+	// 숲 정보 업데이트
+	cypher = `
+	MATCH (f:Forest {id: $forest_id})
+	MATCH p = (f)-[:derived*]->(t:Tree)
+	WITH f, max(length(p)) AS max_depth
+	SET f.total_trees = f.total_trees - $deleted_trees, f.depth = max_depth
+	RETURN f.id, f.depth, f.total_trees;
+	`
+	parameters = map[string]interface{}{
+		"forest_id":     forestId,
+		"deleted_trees": len(deletedId),
+	}
+	_, err = session.Run(ctx, cypher, parameters)
+	if err != nil {
+		return nil, err
 	}
 
 	return deletedId, nil
