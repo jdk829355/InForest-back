@@ -20,4 +20,7 @@ run_db:
 	docker run -v inforest_back_db_data:/data -p 7474:7474 -p 7687:7687 --env-file ./config/.dbenv -d --rm --name db neo4j:latest
 
 build:
-	go build -o bin/server cmd/server/main.go
+	. ./cmd/build.sh
+
+build_docker: build        
+	docker buildx build --platform linux/amd64,linux/arm64 -t jungdae/inforest-app:latest --push .
