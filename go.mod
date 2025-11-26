@@ -3,7 +3,6 @@ module github.com/jdk829355/InForest-back
 go 1.25.1
 
 require (
-	github.com/jdk829355/InForest_back v0.0.0-20251126083140-10650b429526
 	github.com/neo4j/neo4j-go-driver/v5 v5.28.4
 	github.com/supabase-community/supabase-go v0.0.4
 	go.uber.org/zap v1.27.0

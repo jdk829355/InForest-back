@@ -22,7 +22,7 @@ import (
 	"strconv"
 	"time"
 
-	pb "github.com/jdk829355/InForest_back/protos/forest"
+	pb "github.com/jdk829355/InForest-back/protos/forest"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
