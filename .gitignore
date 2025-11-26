@@ -1,4 +1,6 @@
 config/.*
 bin/
 gcp/
-deployments/
+
+**secret.yml
+**.env

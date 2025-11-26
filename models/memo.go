@@ -1,6 +1,6 @@
 package models
 
-import "github.com/jdk829355/InForest_back/protos/forest"
+import "github.com/jdk829355/InForest-back/protos/forest"
 
 type Memo struct {
 	TreeID  string `json:"tree_id"`

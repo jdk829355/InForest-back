@@ -7,7 +7,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 
-	"github.com/jdk829355/InForest_back/internal/service/auth"
+	"github.com/jdk829355/InForest-back/internal/service/auth"
 )
 
 func TestValidateTokenSuccess(t *testing.T) {

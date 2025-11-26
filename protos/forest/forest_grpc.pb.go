@@ -36,8 +36,6 @@ const (
 // ForestServiceClient is the client API for ForestService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-//
-// ForestService는 숲과 나무에 대한 CRUD 작업을 처리합니다.
 type ForestServiceClient interface {
 	GetForestsByUser(ctx context.Context, in *GetForestsByUserRequest, opts ...grpc.CallOption) (*GetForestsByUserResponse, error)
 	GetForest(ctx context.Context, in *GetForestRequest, opts ...grpc.CallOption) (*GetForestResponse, error)
@@ -193,8 +191,6 @@ type ForestService_GetSummaryClient = grpc.ServerStreamingClient[GetSummaryRespo
 // ForestServiceServer is the server API for ForestService service.
 // All implementations must embed UnimplementedForestServiceServer
 // for forward compatibility.
-//
-// ForestService는 숲과 나무에 대한 CRUD 작업을 처리합니다.
 type ForestServiceServer interface {
 	GetForestsByUser(context.Context, *GetForestsByUserRequest) (*GetForestsByUserResponse, error)
 	GetForest(context.Context, *GetForestRequest) (*GetForestResponse, error)

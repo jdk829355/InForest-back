@@ -5,8 +5,8 @@ import (
 	"errors"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/jdk829355/InForest_back/models"
-	"github.com/jdk829355/InForest_back/protos/forest"
+	"github.com/jdk829355/InForest-back/models"
+	"github.com/jdk829355/InForest-back/protos/forest"
 	"go.uber.org/zap"
 )
 

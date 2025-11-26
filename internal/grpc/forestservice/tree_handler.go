@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/jdk829355/InForest_back/models"
-	"github.com/jdk829355/InForest_back/protos/forest"
+	"github.com/jdk829355/InForest-back/models"
+	"github.com/jdk829355/InForest-back/protos/forest"
 	"github.com/redis/go-redis/v9"
 )
 

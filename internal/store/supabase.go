@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/jdk829355/InForest_back/config"
-	"github.com/jdk829355/InForest_back/models"
+	"github.com/jdk829355/InForest-back/config"
+	"github.com/jdk829355/InForest-back/models"
 	"github.com/supabase-community/supabase-go"
 )
 

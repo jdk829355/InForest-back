@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forest-server-deployment
+  labels:
+    app: forest-server
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: forest-server
+  template:
+    metadata:
+      labels:
+        app: forest-server
+    spec:
+      containers:
+      - name: forest-server
+        image: jungdae/inforest-app
+        ports:
+        - containerPort: 50051
+        envFrom:
+        - secretRef:
+            name: forest-secret
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: forest-server-service
+spec:
+  type: ClusterIP
+  selector:
+    app: forest-server
+  ports:
+    - port: 50051
+      targetPort: 50051

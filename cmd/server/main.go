@@ -9,12 +9,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jdk829355/InForest_back/config"
-	app "github.com/jdk829355/InForest_back/internal/grpc/forestservice"
-	"github.com/jdk829355/InForest_back/internal/grpc/interceptors/authinterceptor"
-	"github.com/jdk829355/InForest_back/internal/service/auth"
-	"github.com/jdk829355/InForest_back/internal/store"
-	gen "github.com/jdk829355/InForest_back/protos/forest"
+	"github.com/jdk829355/InForest-back/config"
+	app "github.com/jdk829355/InForest-back/internal/grpc/forestservice"
+	"github.com/jdk829355/InForest-back/internal/grpc/interceptors/authinterceptor"
+	"github.com/jdk829355/InForest-back/internal/service/auth"
+	"github.com/jdk829355/InForest-back/internal/store"
+	gen "github.com/jdk829355/InForest-back/protos/forest"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"

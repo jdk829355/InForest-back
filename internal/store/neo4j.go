@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jdk829355/InForest_back/config"
-	"github.com/jdk829355/InForest_back/models"
+	"github.com/jdk829355/InForest-back/config"
+	"github.com/jdk829355/InForest-back/models"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 
 	"github.com/google/uuid"

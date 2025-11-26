@@ -1,8 +1,8 @@
 package forestservice
 
 import (
-	"github.com/jdk829355/InForest_back/internal/store"
-	"github.com/jdk829355/InForest_back/protos/forest"
+	"github.com/jdk829355/InForest-back/internal/store"
+	"github.com/jdk829355/InForest-back/protos/forest"
 )
 
 type ForestService struct {

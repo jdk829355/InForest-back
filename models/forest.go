@@ -1,7 +1,7 @@
 package models
 
 import (
-	gen "github.com/jdk829355/InForest_back/protos/forest"
+	gen "github.com/jdk829355/InForest-back/protos/forest"
 )
 
 type Forest struct {

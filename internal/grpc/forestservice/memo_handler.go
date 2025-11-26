@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/jdk829355/InForest_back/protos/forest"
+	"github.com/jdk829355/InForest-back/protos/forest"
 )
 
 func (s *ForestService) GetMemo(ctx context.Context, req *forest.GetMemoRequest) (*forest.Memo, error) {

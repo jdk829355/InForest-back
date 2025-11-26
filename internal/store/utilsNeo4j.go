@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jdk829355/InForest_back/models"
+	"github.com/jdk829355/InForest-back/models"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 

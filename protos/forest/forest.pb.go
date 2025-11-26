@@ -1318,7 +1318,7 @@ const file_protos_forest_forest_proto_rawDesc = "" +
 	"UpdateMemo\x12\x12.UpdateMemoRequest\x1a\x13.UpdateMemoResponse\x12!\n" +
 	"\aGetMemo\x12\x0f.GetMemoRequest\x1a\x05.Memo\x127\n" +
 	"\n" +
-	"GetSummary\x12\x12.GetSummaryRequest\x1a\x13.GetSummaryResponse0\x01B2Z0github.com/jdk829355/InForest_back/protos/forestb\x06proto3"
+	"GetSummary\x12\x12.GetSummaryRequest\x1a\x13.GetSummaryResponse0\x01B2Z0github.com/jdk829355/InForest-back/protos/forestb\x06proto3"
 
 var (
 	file_protos_forest_forest_proto_rawDescOnce sync.Once

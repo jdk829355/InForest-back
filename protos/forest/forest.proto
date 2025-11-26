@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/jdk829355/InForest_back/protos/forest";
+option go_package = "github.com/jdk829355/InForest-back/protos/forest";
 
 service ForestService {
   rpc GetForestsByUser (GetForestsByUserRequest) returns (GetForestsByUserResponse);
