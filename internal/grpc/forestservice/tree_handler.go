@@ -114,7 +114,7 @@ func (s *ForestService) GetSummary(req *forest.GetSummaryRequest, stream forest.
 		// 요약이 이미 존재하는 경우 바로 반환
 		return stream.Send(&forest.GetSummaryResponse{
 			Summary: tree.Summary,
-			Status:  "completed",
+			Status:  "COMPLETED",
 		})
 	}
 	rdb := redis.NewClient(&redis.Options{
