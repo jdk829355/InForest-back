@@ -1,5 +1,4 @@
 config/.*
-bin/
 gcp/
 
 **secret.yml
