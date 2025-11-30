@@ -214,8 +214,6 @@ func (s *ForestService) startNewSummaryTask(tree *models.Tree, rdb *redis.Client
 	if err != nil {
 		return err
 	}
-	// TODO 하드코딩된 ai_app:8000 환경변수로 빼기
-	// TODO http 클라이언트 재사용 고려 (코드도 중복됨 없앨 필요 있음)
 	aiServiceURL := os.Getenv("AI_SERVICE_URL")
 	if aiServiceURL == "" {
 		aiServiceURL = "http://ai-app:8000"
@@ -234,7 +232,6 @@ func (s *ForestService) startNewSummaryTask(tree *models.Tree, rdb *redis.Client
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to start summary task, status code: %d", resp.StatusCode)
 	}
-	// TODO 해당 코드 중복 너무 많음.. 리팩토링 필요
 	if err := s.streamStatus(&stream, tree.Id, rdb); err != nil {
 		return err
 	}
