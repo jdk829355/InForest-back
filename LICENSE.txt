@@ -19,3 +19,51 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+--------------------------------------------------------------------------------
+THIRD-PARTY SOFTWARE NOTICES
+--------------------------------------------------------------------------------
+
+This project uses the following third-party software:
+
+1. github.com/neo4j/neo4j-go-driver
+   License: Apache-2.0
+   Copyright (c) Neo4j Sweden AB
+
+2. github.com/supabase-community/supabase-go
+   License: MIT
+   Copyright (c) Supabase
+
+3. go.uber.org/zap
+   License: MIT
+   Copyright (c) Uber Technologies, Inc.
+
+4. google.golang.org/grpc
+   License: Apache-2.0
+   Copyright (c) The gRPC Authors
+
+5. google.golang.org/protobuf
+   License: BSD-3-Clause
+   Copyright (c) The Go Authors
+
+6. github.com/golang-jwt/jwt
+   License: MIT
+   Copyright (c) The JWT Authors
+
+7. github.com/google/uuid
+   License: BSD-3-Clause
+   Copyright (c) Google Inc.
+
+8. github.com/grpc-ecosystem/go-grpc-middleware
+   License: Apache-2.0
+   Copyright (c) The gRPC Ecosystem Authors
+
+9. github.com/joho/godotenv
+   License: MIT
+   Copyright (c) John Barton
+
+10. github.com/redis/go-redis
+    License: BSD-2-Clause
+    Copyright (c) The go-redis Authors
+
+--------------------------------------------------------------------------------
+The full text of the licenses can be found at the respective project repositories.
